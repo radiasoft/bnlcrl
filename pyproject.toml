@@ -1,0 +1,43 @@
+[build-system]
+requires = ["chronver", "setuptools>=66"]
+build-backend = "setuptools.build_meta"
+
+[project]
+authors = [
+    { name = "mrakitin", email = "pip@radiasoft.net" },
+]
+classifiers = [
+    "Development Status :: 2 - Pre-Alpha",
+    "Environment :: Console",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: Apache Software License",
+    "Natural Language :: English",
+    "Programming Language :: Python",
+    "Topic :: Utilities",
+]
+dependencies = [
+    "argh",
+    "matplotlib",
+    "numpy",
+    "pandas",
+    "periodictable",
+    "pykern",
+    "pytest",
+    "requests",
+]
+description = "CRL simulator"
+dynamic = ["version"]
+name = "bnlcrl"
+readme = "README.md"
+
+[project.scripts]
+bnlcrl = "bnlcrl.bnlcrl_console:main"
+
+[project.urls]
+Homepage = "https://github.com/mrakitin/bnlcrl"
+
+[tool.setuptools.package-data]
+bnlcrl = ["package_data/**"]
+
+[tool.setuptools.packages.find]
+include = ["bnlcrl*"]

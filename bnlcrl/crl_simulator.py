@@ -2,8 +2,6 @@
 # Author: Maksim Rakitin (BNL)
 # 2016
 
-from __future__ import division
-
 import copy
 import json
 import math
@@ -90,14 +88,18 @@ class CRLSimulator:
 
     @staticmethod
     def calc_ideal_focus(**kwargs):
+        from pykern.pkdebug import pkdp
         # Get input variables:
         d = read_json(DEFAULTS_FILE)
         parameters = convert_types(d['cli_functions']['calc_ideal_focus']['parameters'])
+        pkdp(d)
         for key, default_val in parameters.items():
             if key in kwargs.keys():
                 locals()[key] = parameters[key]['type'](kwargs[key])
             elif key not in locals() or locals()[key] is None:
                 locals()[key] = default_val['default']
+            else:
+                assert 0
 
         # Perform calculation:
         assert locals()['n'] > 0

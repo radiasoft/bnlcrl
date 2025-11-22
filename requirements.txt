@@ -1,4 +1,0 @@
-pykern
-periodictable
-numpy
-matplotlib
