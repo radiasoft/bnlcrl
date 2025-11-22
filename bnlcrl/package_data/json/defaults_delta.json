@@ -2,7 +2,7 @@
     "cli_functions": {
         "find_delta": {
             "class_name": "DeltaFinder",
-            "description_long": "        The index of refraction can be defined by three different methods/approaches:\n\n        1) Get delta for the closest energy from the saved *.dat files (see ``bnlcrl/package_data/dat/``).\n\n        2) Get delta from http://henke.lbl.gov/optical_constants/getdb2.html.\n\n        3) Calculate delta analytically (requires ``periodictable`` package installed).",
+            "description_long": "        The index of refraction can be defined by three different methods/approaches:\n\n        1) Get delta for the closest energy from the saved *.dat files (see ``bnlcrl/package_data/dat/``).\n\n        2) Get delta from https://henke.lbl.gov/optical_constants/getdb2.html.\n\n        3) Calculate delta analytically (requires ``periodictable`` package installed).",
             "description_short": "Determine the Index of Refraction (delta)",
             "returns": [
                 "characteristic",
