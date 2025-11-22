@@ -10,10 +10,10 @@ import os
 from bnlcrl.delta_finder import DeltaFinder
 from bnlcrl.utils import convert_types, defaults_file, read_json
 
-parms = defaults_file(suffix='crl')
-DAT_DIR = parms['dat_dir']
-CONFIG_DIR = parms['config_dir']
-DEFAULTS_FILE = parms['defaults_file']
+parms = defaults_file(suffix="crl")
+DAT_DIR = parms["dat_dir"]
+CONFIG_DIR = parms["config_dir"]
+DEFAULTS_FILE = parms["defaults_file"]
 
 
 class CRLSimulator:
@@ -23,12 +23,12 @@ class CRLSimulator:
 
         # Get input variables:
         d = read_json(DEFAULTS_FILE)
-        self.parameters = convert_types(d['parameters'])
+        self.parameters = convert_types(d["parameters"])
         for key, default_val in self.parameters.items():
             if key in kwargs.keys():
-                setattr(self, key, self.parameters[key]['type'](kwargs[key]))
+                setattr(self, key, self.parameters[key]["type"](kwargs[key]))
             elif not hasattr(self, key) or getattr(self, key) is None:
-                setattr(self, key, default_val['default'])
+                setattr(self, key, default_val["default"])
 
         # Initialize non-input variables:
         self.radii = None
@@ -80,8 +80,14 @@ class CRLSimulator:
 
     def calc_delta_focus(self, p):
         if p is not None:
-            d = self.d_ssa_focus - (self.p0 + p + self.transfocator_config[self._find_element_by_id(self.cart_ids[-1])][
-                'offset_cart'] * self.dl_cart)
+            d = self.d_ssa_focus - (
+                self.p0
+                + p
+                + self.transfocator_config[self._find_element_by_id(self.cart_ids[-1])][
+                    "offset_cart"
+                ]
+                * self.dl_cart
+            )
         else:
             d = None
         return d
@@ -89,43 +95,46 @@ class CRLSimulator:
     @staticmethod
     def calc_ideal_focus(**kwargs):
         from pykern.pkdebug import pkdp
+
         # Get input variables:
         d = read_json(DEFAULTS_FILE)
-        parameters = convert_types(d['cli_functions']['calc_ideal_focus']['parameters'])
-        pkdp(d)
+        parameters = convert_types(d["cli_functions"]["calc_ideal_focus"]["parameters"])
+        v = {}
         for key, default_val in parameters.items():
             if key in kwargs.keys():
-                locals()[key] = parameters[key]['type'](kwargs[key])
-            elif key not in locals() or locals()[key] is None:
-                locals()[key] = default_val['default']
-            else:
-                assert 0
+                v[key] = parameters[key]["type"](kwargs[key])
+            elif key not in v or v[key] is None:
+                v[key] = default_val["default"]
 
         # Perform calculation:
-        assert locals()['n'] > 0
-        assert locals()['delta'] != 0
-        ideal_focus = locals()['radius'] / (2. * locals()['n'] * locals()['delta'])
-        p1_ideal = 1. / (1. / ideal_focus - 1. / locals()['p0'])
-        p1_ideal_from_source = p1_ideal + locals()['p0']
+        assert v["n"] > 0
+        assert v["delta"] != 0
+        ideal_focus = v["radius"] / (2.0 * v["n"] * v["delta"])
+        p1_ideal = 1.0 / (1.0 / ideal_focus - 1.0 / v["p0"])
+        p1_ideal_from_source = p1_ideal + v["p0"]
         return {
-            'ideal_focus': ideal_focus,
-            'p1_ideal': p1_ideal,
-            'p1_ideal_from_source': p1_ideal_from_source,
+            "ideal_focus": ideal_focus,
+            "p1_ideal": p1_ideal,
+            "p1_ideal_from_source": p1_ideal_from_source,
         }
 
     def calc_ideal_lens(self):
         self._get_radii_n()
-        if abs(sum(self.radii) / len(self.radii) - self.radii[0]) < self.radii_tolerance:
+        if (
+            abs(sum(self.radii) / len(self.radii) - self.radii[0])
+            < self.radii_tolerance
+        ):
             d = self.calc_ideal_focus(
-                radius=self.radii[0],
-                n=self.n,
-                delta=self.delta,
-                p0=self.p0
+                radius=self.radii[0], n=self.n, delta=self.delta, p0=self.p0
             )
             for k in d.keys():
                 setattr(self, k, d[k])
         else:
-            print('Radii of the specified lenses ({}) are different! Cannot calculate ideal lens.'.format(self.radii))
+            print(
+                "Radii of the specified lenses ({}) are different! Cannot calculate ideal lens.".format(
+                    self.radii
+                )
+            )
 
     def calc_lens_array(self, radius, n):
         """Calculate accumulated T_fs for one cartridge with fixed radius.
@@ -147,15 +156,17 @@ class CRLSimulator:
     def calc_T_total(self):
         dist_list = []
         for i in range(len(self.cart_ids) - 1):
-            dist_list.append(self._calc_distance(self.cart_ids[i], self.cart_ids[i + 1]))
+            dist_list.append(
+                self._calc_distance(self.cart_ids[i], self.cart_ids[i + 1])
+            )
 
         R_list = []
         N_list = []
         for i in range(len(self.cart_ids)):
             j = self._find_element_by_id(self.cart_ids[i])
-            name = self.transfocator_config[j]['name']
-            R_list.append(self.lens_config[name]['radius'])
-            N_list.append(self.lens_config[name]['lens_number'])
+            name = self.transfocator_config[j]["name"]
+            R_list.append(self.lens_config[name]["radius"])
+            N_list.append(self.lens_config[name]["lens_number"])
 
         if len(self.cart_ids) == 1:
             self.T = self.calc_lens_array(R_list[0], N_list[0])
@@ -165,67 +176,66 @@ class CRLSimulator:
             self.T = self._dot(A, B)
             for i in range(len(self.cart_ids) + len(self.cart_ids) - 3):
                 if i % 2 == 0:
-                    B = self.calc_lens_array(R_list[int((i + 2) / 2)], N_list[int((i + 2) / 2)])
+                    B = self.calc_lens_array(
+                        R_list[int((i + 2) / 2)], N_list[int((i + 2) / 2)]
+                    )
                     self.T = self._dot(B, self.T)
                 else:
                     A = self._calc_T_dl(dist_list[int((i + 1) / 2)])
                     self.T = self._dot(A, self.T)
         else:
-            raise Exception('No lenses in the beam!')
+            raise Exception("No lenses in the beam!")
 
     def calc_y_teta(self):
         (self.y, self.teta) = self._dot(self.T, [self.y0, self.teta0])
 
     def get_inserted_lenses(self):
         self._get_radii_n()
-        return {
-            'ids': self.cart_ids,
-            'radii': self.radii,
-            'total_lenses': self.n
-        }
+        return {"ids": self.cart_ids, "radii": self.radii, "total_lenses": self.n}
 
     def print_result(self, output_format=None):
         python_data = {
-            'p0': self.p0,
-            'p1': self.p1,
-            'p1_ideal': self.p1_ideal,
-            'd': self.d,
-            'd_ideal': self.d_ideal,
-            'f': self.f,
+            "p0": self.p0,
+            "p1": self.p1,
+            "p1_ideal": self.p1_ideal,
+            "d": self.d,
+            "d_ideal": self.d_ideal,
+            "f": self.f,
         }
         if not output_format:
             output_format = self.output_format
 
-        if output_format == 'csv':
+        if output_format == "csv":
             header = []
             data = []
             for key in sorted(python_data.keys()):
                 header.append(key)
                 data.append(python_data[key])
-            output_text = '{}\n{}\n'.format(
-                ','.join(['"{}"'.format(x) for x in header]),
-                ','.join([str(x) for x in data]))
-        elif output_format == 'json':
+            output_text = "{}\n{}\n".format(
+                ",".join(['"{}"'.format(x) for x in header]),
+                ",".join([str(x) for x in data]),
+            )
+        elif output_format == "json":
             output_text = json.dumps(
                 python_data,
                 sort_keys=True,
                 indent=4,
-                separators=(',', ': '),
+                separators=(",", ": "),
             )
         else:  # plain text
             output_list = []
             for key in sorted(python_data.keys()):
-                output_list.append('{}: {}'.format(key, python_data[key]))
-            output_text = ', '.join(output_list)
+                output_list.append("{}: {}".format(key, python_data[key]))
+            output_text = ", ".join(output_list)
 
         print(output_text)
         if self.outfile:
-            with open(self.outfile, 'w') as f:
+            with open(self.outfile, "w") as f:
                 f.write(output_text)
 
     def read_config_file(self):
-        self.config_file = os.path.join(CONFIG_DIR, '{}_crl.json'.format(self.beamline))
-        self.transfocator_config = read_json(self.config_file)['crl']
+        self.config_file = os.path.join(CONFIG_DIR, "{}_crl.json".format(self.beamline))
+        self.transfocator_config = read_json(self.config_file)["crl"]
 
     def _calc_distance(self, id1, id2):
         """Calculate distance between two arbitrary cartridges specified by ids.
@@ -238,9 +248,11 @@ class CRLSimulator:
         el_num1 = self._find_element_by_id(id1)
         el_num2 = self._find_element_by_id(id2)
 
-        lens_num1 = self.lens_config[self.transfocator_config[el_num1]['name']]['lens_number']
-        coord1 = self.transfocator_config[el_num1]['offset_cart'] * self.dl_cart
-        coord2 = self.transfocator_config[el_num2]['offset_cart'] * self.dl_cart
+        lens_num1 = self.lens_config[self.transfocator_config[el_num1]["name"]][
+            "lens_number"
+        ]
+        coord1 = self.transfocator_config[el_num1]["offset_cart"] * self.dl_cart
+        coord2 = self.transfocator_config[el_num2]["offset_cart"] * self.dl_cart
         dist = coord2 - coord1 - lens_num1 * self.dl_lens
         return dist
 
@@ -268,20 +280,20 @@ class CRLSimulator:
 
         for input_id in self.cart_ids:
             if input_id not in self.available_ids:
-                msg = 'Specified cart_id <{}> not in the list of available ids: <{}>.'
-                raise Exception(msg.format(input_id, ', '.join(self.available_ids)))
+                msg = "Specified cart_id <{}> not in the list of available ids: <{}>."
+                raise Exception(msg.format(input_id, ", ".join(self.available_ids)))
 
         len_total = len(self.cart_ids)
         len_unique = len(set(self.cart_ids))
         if len_total != len_unique:
-            msg = 'Number of non-unique cartridge ids: {}'
+            msg = "Number of non-unique cartridge ids: {}"
             raise Exception(msg.format(len_total - len_unique + 1))
 
         return True
 
     def _check_imports(self):
         self.available_libs = {
-            'numpy': None,
+            "numpy": None,
         }
         for key in self.available_libs.keys():
             try:
@@ -293,14 +305,14 @@ class CRLSimulator:
 
     def _dot(self, A, B):
         """Multiplies matrix A by matrix B."""
-        if self.use_numpy and self.available_libs['numpy']:
+        if self.use_numpy and self.available_libs["numpy"]:
             C = self.numpy.dot(A, B)
         else:
             B0 = B[0]
             lenB = len(B)
             lenA = len(A)
             if len(A[0]) != lenB:  # Check matrix dimensions
-                raise Exception('Matrices have wrong dimensions')
+                raise Exception("Matrices have wrong dimensions")
             if isinstance(B0, list) or isinstance(B0, tuple):  # B is matrix
                 lenB0 = len(B0)
                 C = [[0 for _ in range(lenB0)] for _ in range(lenA)]
@@ -318,7 +330,7 @@ class CRLSimulator:
     def _find_element_by_id(self, id):
         element_number = None
         for i in range(len(self.transfocator_config)):
-            if id == self.transfocator_config[i]['id']:
+            if id == self.transfocator_config[i]["id"]:
                 element_number = i
                 break
         return element_number
@@ -331,21 +343,25 @@ class CRLSimulator:
 
     def _find_name_by_id(self, id):
         real_id = self._find_element_by_id(id)
-        name = self.transfocator_config[real_id]['name']
+        name = self.transfocator_config[real_id]["name"]
         return name
 
     def _get_available_ids(self):
         self.available_ids = []
         for i in range(len(self.transfocator_config)):
-            self.available_ids.append(self.parameters['cart_ids']['element_type'](self.transfocator_config[i]['id']))
+            self.available_ids.append(
+                self.parameters["cart_ids"]["element_type"](
+                    self.transfocator_config[i]["id"]
+                )
+            )
 
     def _get_lens_config(self):
         self.lens_config = {}
         for i in self.r_array:
             for j in self.lens_array:
-                self.lens_config['T_{}_{}'.format(j, i)] = {
-                    'radius': i * 1e-6,
-                    'lens_number': j,
+                self.lens_config["T_{}_{}".format(j, i)] = {
+                    "radius": i * 1e-6,
+                    "lens_number": j,
                 }
 
     def _get_radii_n(self):
@@ -354,8 +370,8 @@ class CRLSimulator:
         for i in self.cart_ids:
             name = self._find_name_by_id(i)
             lens = self._find_lens_parameters_by_name(name)
-            self.radii.append(lens['radius'])
-            self.n += lens['lens_number']
+            self.radii.append(lens["radius"])
+            self.n += lens["lens_number"]
 
     def _matrix_power(self, A, n):
         """Multiply matrix A n times.
@@ -365,9 +381,9 @@ class CRLSimulator:
         :return B: resulted matrix.
         """
         if len(A) != len(A[0]):
-            raise Exception('Matrix is not square: {} x {}'.format(len(A), len(A[0])))
+            raise Exception("Matrix is not square: {} x {}".format(len(A), len(A[0])))
 
-        if self.use_numpy and self.available_libs['numpy']:
+        if self.use_numpy and self.available_libs["numpy"]:
             B = self.numpy.linalg.matrix_power(A, n)
         else:
             if n > 0:
@@ -385,6 +401,10 @@ class CRLSimulator:
                             row.append(0)
                     B.append(row)
             else:
-                raise Exception('Negative power <{}> is not supported for matrix power operation.'.format(n))
+                raise Exception(
+                    "Negative power <{}> is not supported for matrix power operation.".format(
+                        n
+                    )
+                )
 
         return B
