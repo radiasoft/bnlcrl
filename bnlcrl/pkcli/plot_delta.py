@@ -1,6 +1,7 @@
 from bnlcrl.delta_finder import DeltaFinder
 
-if __name__ == "__main__":
+
+def do():
     import numpy as np
     from matplotlib import pyplot as plt
 
@@ -32,5 +33,3 @@ if __name__ == "__main__":
     ax.grid()
 
     plt.show()
-
-    print("")

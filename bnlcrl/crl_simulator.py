@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # Author: Maksim Rakitin (BNL)
 # 2016
-
+from pykern.pkdebug import pkdlog
 import copy
 import json
 import math
@@ -130,10 +130,8 @@ class CRLSimulator:
             for k in d.keys():
                 setattr(self, k, d[k])
         else:
-            print(
-                "Radii of the specified lenses ({}) are different! Cannot calculate ideal lens.".format(
-                    self.radii
-                )
+            raise ValueError(
+                f"Radii of the specified lenses ({self.radii}) are different! Cannot calculate ideal lens.",
             )
 
     def calc_lens_array(self, radius, n):
@@ -228,7 +226,7 @@ class CRLSimulator:
                 output_list.append("{}: {}".format(key, python_data[key]))
             output_text = ", ".join(output_list)
 
-        print(output_text)
+        pkdlog("{}", output_text)
         if self.outfile:
             with open(self.outfile, "w") as f:
                 f.write(output_text)

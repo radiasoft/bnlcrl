@@ -7,6 +7,7 @@ Author: Maksim Rakitin (BNL)
 2016
 """
 
+from pykern.pkdebug import pkdlog
 import json
 import math
 import os
@@ -101,7 +102,7 @@ class DeltaFinder:
 
     def print_info(self):
         msg = "Found {}={} for the closest energy={} eV from {}."
-        print(
+        pkdlog(
             msg.format(
                 self.characteristic,
                 self.characteristic_value,
@@ -137,15 +138,17 @@ class DeltaFinder:
             self.e_min = self.e_max
 
         if self.verbose:
-            print(
-                "Data from {} eV to {} eV saved to the <{}> file.".format(
-                    self.default_e_min, self.default_e_max, self.outfile
-                )
+            pkdlog(
+                "Data from {} eV to {} eV saved to the <{}> file.",
+                self.default_e_min,
+                self.default_e_max,
+                self.outfile,
             )
-            print(
-                "Energy step: {} eV, number of points/chunk: {}, number of chunks {}.".format(
-                    self.e_step, self.n_points, counter
-                )
+            pkdlog(
+                "Energy step: {} eV, number of points/chunk: {}, number of chunks {}.",
+                self.e_step,
+                self.n_points,
+                counter,
             )
 
     def _check_imports(self):
