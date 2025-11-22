@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-u"""Utilities for X-Ray beamlines.
+"""Utilities for X-Ray beamlines.
 
 The module to perform the following operations:
 
