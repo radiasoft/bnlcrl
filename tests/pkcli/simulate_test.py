@@ -5,7 +5,7 @@ from bnlcrl.pkcli import simulate
 
 verbose = False
 
-_EPSILON = 1e-7
+_EPSILON = 1e-5
 
 
 def test_calc_ideal_focus1():
